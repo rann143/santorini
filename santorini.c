@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -70,11 +71,42 @@ Coordinate pickAIStart(Coordinate pCoor) {
        random_c = (rand() % (maxC - minC + 1)) + minC;
     } while (random_r == pCoor.r && random_c == pCoor.c);
 
-    printf("randx: %d randy: %d\n", random_r, random_c);
 
         result.r = random_r;
         result.c = random_c;
         return result;
+}
+
+// This function isn't really needed, we can just create a global variable hasFinished
+bool hasFinished(int r, int c, char board[][c]) {
+    int towersFinished = 0;
+    int towersCrushed = 0;
+
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            if (board[i][j] - '0' == 4) {
+                towersFinished++;
+            }
+
+            if (board[i][j] - '0' == 0) {
+                towersCrushed++;
+            }
+        }
+    }
+
+    if (towersCrushed >= 10 || towersFinished >= 10) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+Coordinate playerMove() {
+
+}
+
+Coordinate aiMove() {
+
 }
 
 int main (void) {
@@ -85,16 +117,25 @@ int main (void) {
         }
     }
 
+    bool hasFinished = false;
 
     printBoard(6, 6, board);
 
     Coordinate startingCoor = pickStart();
     board[startingCoor.r][startingCoor.c] = 'P';
     Coordinate aiStartingCoor = pickAIStart(startingCoor);
-    printf("%d %d \n", aiStartingCoor.r + 1, aiStartingCoor.c + 1);
     board[aiStartingCoor.r][aiStartingCoor.c] = 'A';
 
     printBoard(6, 6, board);
+    
+    // do {
+    //     // player move
+    //     // update board
+    //     // check if player won
+    //     // ai move
+    //     // update board
+    //     // check if ai won
+    // } while (/*hasFinished == false*/)
 
     return 0;
 }
