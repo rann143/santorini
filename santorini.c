@@ -101,13 +101,53 @@ bool hasFinished(int r, int c, char board[][c]) {
     }
 }
 
-Coordinate playerMove() {
+Coordinate playerMove(Coordinate pCoor, Coordinate aiCoor) {
+    int r, c;
+    int size = 6;
+    Coordinate result;
 
+    int maxR = (pCoor.r + 1 >= size) ? size - 1 : pCoor.r + 1;
+    int maxC = (pCoor.c + 1 >= size) ? size - 1 : pCoor.c + 1;
+
+    int minR = (pCoor.r - 1 < 0) ? 0 : pCoor.r - 1;
+    int minC = (pCoor.c - 1 < 0) ? 0 : pCoor.c - 1;
+
+    printf("Pick Your Move: (Row Col coordinates): \n");
+    scanf("%d %d", &r, &c);
+    r--;
+    c--;
+    printf("chose: %d %d\n", r, c);
+    printf("prev: %d %d\n", pCoor.r, pCoor.c);
+
+    if (!(r <= maxR && r >= minR)) {
+        printf("r NOT in range\n");
+    };
+    if (!(c <= maxC && c >= minC)) {
+        printf("c NOT in range\n");
+    };
+    if ((r == pCoor.r && c == pCoor.c)) {
+        printf("rc is same as current\n");
+    };
+    if ((r == aiCoor.r && c == aiCoor.c)) {
+        printf("rc is in ai location\n");
+    };
+
+    if ((r <= maxR && r >= minR) && (c <= maxC && c >= minC) && (r != pCoor.r || c != pCoor.c) && (r != aiCoor.r || c != aiCoor.c)) {
+        printf("Placed at %d %d\n", r, c);
+        result.r = r;
+        result.c = c;
+        return result;
+    }
+    else
+    {
+        printf("Out of bounds. Try again: \n");
+        return playerMove(pCoor, aiCoor);
+    }
 }
 
-Coordinate aiMove() {
+// Coordinate aiMove() {
 
-}
+// }
 
 int main (void) {
     char board[6][6];
@@ -121,13 +161,28 @@ int main (void) {
 
     printBoard(6, 6, board);
 
-    Coordinate startingCoor = pickStart();
-    board[startingCoor.r][startingCoor.c] = 'P';
-    Coordinate aiStartingCoor = pickAIStart(startingCoor);
+    Coordinate currentCoor = pickStart();
+    char value = board[currentCoor.r][currentCoor.c];
+    board[currentCoor.r][currentCoor.c] = 'P';
+    Coordinate aiStartingCoor = pickAIStart(currentCoor);
     board[aiStartingCoor.r][aiStartingCoor.c] = 'A';
 
     printBoard(6, 6, board);
-    
+
+    do {
+        Coordinate prev = currentCoor;
+        currentCoor = playerMove(currentCoor, aiStartingCoor);
+
+        int newNum = (value - '0') + 1;
+        board[prev.r][prev.c] = newNum + '0';
+        value = board[currentCoor.r][currentCoor.c];
+        
+        board[currentCoor.r][currentCoor.c] = 'P';
+        printBoard(6, 6, board);
+    } while (hasFinished == false);
+
+        printf("Done!\n");
+
     // do {
     //     // player move
     //     // update board
