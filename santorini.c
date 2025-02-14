@@ -7,18 +7,19 @@ void printBoard (int r, int c, char board[][c]) {
     // Print Column numbers
     for (int i = 0; i < 7; i++) {
         if (i == 0) {
-            printf("  ");
+            printf("    ");
         } else {
             printf("%d ", i);
         }
     }
 
     printf("\n");
+    printf("\n");
 
     for (int i = 0; i < r; i++)
     {
         // Print Row numbers
-        printf("%d ", i + 1);
+        printf("%d   ", i + 1);
 
         // Print board
         for (int j = 0; j < c; j++)
@@ -78,7 +79,7 @@ Coordinate pickAIStart(Coordinate pCoor) {
 }
 
 // This function isn't really needed, we can just create a global variable hasFinished
-bool hasFinished(int r, int c, char board[][c]) {
+bool checkHasFinished(int r, int c, char board[][c]) {
     int towersFinished = 0;
     int towersCrushed = 0;
 
@@ -119,19 +120,6 @@ Coordinate playerMove(Coordinate pCoor, Coordinate aiCoor) {
     printf("chose: %d %d\n", r, c);
     printf("prev: %d %d\n", pCoor.r, pCoor.c);
 
-    if (!(r <= maxR && r >= minR)) {
-        printf("r NOT in range\n");
-    };
-    if (!(c <= maxC && c >= minC)) {
-        printf("c NOT in range\n");
-    };
-    if ((r == pCoor.r && c == pCoor.c)) {
-        printf("rc is same as current\n");
-    };
-    if ((r == aiCoor.r && c == aiCoor.c)) {
-        printf("rc is in ai location\n");
-    };
-
     if ((r <= maxR && r >= minR) && (c <= maxC && c >= minC) && (r != pCoor.r || c != pCoor.c) && (r != aiCoor.r || c != aiCoor.c)) {
         printf("Placed at %d %d\n", r, c);
         result.r = r;
@@ -149,6 +137,29 @@ Coordinate playerMove(Coordinate pCoor, Coordinate aiCoor) {
 
 // }
 
+void updateSquaresPlayer(int r, int c, char board[][c], int updatedValue, Coordinate playerPos, Coordinate aiPos) {
+    for (int i = 0; i < 6; i++) {
+
+        for (int j = 0; j < 6; j++) {
+            if (i == playerPos.r && (i != playerPos.r || j != playerPos.c) && (i != aiPos.r || j != aiPos.c)) {
+                board[i][j] = updatedValue;
+                char tmp = board[i][j];
+                
+            }
+            if (j == playerPos.c && (i != playerPos.r || j != playerPos.c) && (i != aiPos.r || j != aiPos.c)) {
+                board[i][j] = updatedValue;
+                char tmp = board[i][j];
+                
+            }
+
+            if ((abs(playerPos.r - i) == abs(playerPos.c - j)) && (i != playerPos.r || j != playerPos.c) && (i != aiPos.r || j != aiPos.c)){
+               board[i][j] = updatedValue; 
+            }
+        }
+    }
+    printf("\n");
+}
+
 int main (void) {
     char board[6][6];
     for (int i = 0; i < 6; i++) {
@@ -164,21 +175,32 @@ int main (void) {
     Coordinate currentCoor = pickStart();
     char value = board[currentCoor.r][currentCoor.c];
     board[currentCoor.r][currentCoor.c] = 'P';
-    Coordinate aiStartingCoor = pickAIStart(currentCoor);
-    board[aiStartingCoor.r][aiStartingCoor.c] = 'A';
+    Coordinate aiCoor = pickAIStart(currentCoor);
+    board[aiCoor.r][aiCoor.c] = 'A';
 
     printBoard(6, 6, board);
 
     do {
-        Coordinate prev = currentCoor;
-        currentCoor = playerMove(currentCoor, aiStartingCoor);
-
-        int newNum = (value - '0') + 1;
-        board[prev.r][prev.c] = newNum + '0';
-        value = board[currentCoor.r][currentCoor.c];
         
+        Coordinate prev = currentCoor;
+        currentCoor = playerMove(currentCoor, aiCoor);
+
+        char newNum = ((value - '0') + 1) + '0';
+        board[prev.r][prev.c] = newNum;
+        updateSquaresPlayer(6, 6, board, newNum, currentCoor, aiCoor);
+        value = newNum;
+        printf("current value %c\n", value);
+
         board[currentCoor.r][currentCoor.c] = 'P';
         printBoard(6, 6, board);
+
+
+
+
+        bool check = checkHasFinished(6, 6, board);
+        if (check) {
+            hasFinished = true;
+        }
     } while (hasFinished == false);
 
         printf("Done!\n");
