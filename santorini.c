@@ -102,6 +102,33 @@ bool checkHasFinished(int r, int c, char board[][c]) {
     }
 }
 
+int announceWinner(int r, int c, char board[][c]) {
+    int towersFinished = 0;
+    int towersCrushed = 0;
+
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            if (board[i][j] - '0' == 4) {
+                towersFinished++;
+            }
+
+            if (board[i][j] - '0' == 0) {
+                towersCrushed++;
+            }
+        }
+    }
+
+    if (towersFinished >= 10) {
+        printf("You've won!\n Towers Completed: %d\n Towers Destroyed: %d\n", towersFinished, towersCrushed);
+        return 0;
+        }
+    else
+    {
+        printf("You LOST YOU LOST\n Towers Completed: %d\n Towers Destroyed: %d\n", towersFinished, towersCrushed);
+        return 0;
+    }
+}
+
 Coordinate playerMove(Coordinate pCoor, Coordinate aiCoor) {
     int r, c;
     int size = 6;
@@ -133,9 +160,28 @@ Coordinate playerMove(Coordinate pCoor, Coordinate aiCoor) {
     }
 }
 
-// Coordinate aiMove() {
+Coordinate aiMove(Coordinate pCoor, Coordinate aiCoor) {
+    Coordinate result;
+        int random_r;
+        int random_c;
 
-// }
+        srand(time(NULL));
+        int maxR = (aiCoor.r + 1 > 5) ? 5 : aiCoor.r + 1;
+        int maxC = (aiCoor.c + 1 > 5) ? 5 : aiCoor.c + 1;
+
+        int minR = (aiCoor.r - 1 < 0) ? 0 : aiCoor.r - 1;
+        int minC = (aiCoor.c - 1 < 0) ? 0 : aiCoor.c - 1;
+        
+        do {
+        random_r = (rand() % (maxR - minR + 1)) + minR;
+        random_c = (rand() % (maxC - minC + 1)) + minC;
+        } while ((random_r == aiCoor.r && random_c == aiCoor.c) || (random_r == pCoor.r && random_c == pCoor.c));
+
+
+            result.r = random_r;
+            result.c = random_c;
+            return result;
+}
 
 void updateSquaresPlayer(int r, int c, char board[][c], int updatedValue, Coordinate playerPos, Coordinate aiPos) {
     for (int i = 0; i < 6; i++) {
@@ -160,6 +206,31 @@ void updateSquaresPlayer(int r, int c, char board[][c], int updatedValue, Coordi
     printf("\n");
 }
 
+void updateSquaresAI(int r, int c, char board[][c], Coordinate playerPos, Coordinate aiPos) {
+    for (int i = 0; i < 6; i++) {
+
+        for (int j = 0; j < 6; j++) {
+            int currentCoorValue = board[i][j] - '0';
+            char updatedValue = (currentCoorValue - 1) < 0 ? '0' : (currentCoorValue - 1) + '0';
+            if (i == aiPos.r && (i != playerPos.r || j != playerPos.c) && (i != aiPos.r || j != aiPos.c))
+            {
+                board[i][j] = updatedValue;
+                char tmp = board[i][j];
+            }
+            if (j == aiPos.c && (i != playerPos.r || j != playerPos.c) && (i != aiPos.r || j != aiPos.c)) {
+                board[i][j] = updatedValue;
+                char tmp = board[i][j];
+                
+            }
+
+            if ((abs(aiPos.r - i) == abs(aiPos.c - j)) && (i != playerPos.r || j != playerPos.c) && (i != aiPos.r || j != aiPos.c)){
+               board[i][j] = updatedValue; 
+            }
+        }
+    }
+    printf("\n");
+}
+
 int main (void) {
     char board[6][6];
     for (int i = 0; i < 6; i++) {
@@ -176,6 +247,7 @@ int main (void) {
     char value = board[currentCoor.r][currentCoor.c];
     board[currentCoor.r][currentCoor.c] = 'P';
     Coordinate aiCoor = pickAIStart(currentCoor);
+    char aiValue = board[aiCoor.r][aiCoor.c];
     board[aiCoor.r][aiCoor.c] = 'A';
 
     printBoard(6, 6, board);
@@ -185,17 +257,27 @@ int main (void) {
         Coordinate prev = currentCoor;
         currentCoor = playerMove(currentCoor, aiCoor);
 
-        char newNum = ((value - '0') + 1) + '0';
+        char newNum = ((value - '0') + 1) > 4 ? '4' : ((value - '0') + 1)  + '0';
         board[prev.r][prev.c] = newNum;
         updateSquaresPlayer(6, 6, board, newNum, currentCoor, aiCoor);
         value = newNum;
-        printf("current value %c\n", value);
+        // printf("current value %c\n", value);
 
         board[currentCoor.r][currentCoor.c] = 'P';
+        
+
+
+        Coordinate aiPrev = aiCoor;
+        aiCoor = aiMove(currentCoor, aiCoor);
+
+        char newAiNum = ((aiValue - '0') - 1) < 0 ? '0' : ((aiValue - '0') - 1) + '0';
+        
+        updateSquaresAI(6, 6, board, currentCoor, aiCoor);
+        board[aiPrev.r][aiPrev.c] = newAiNum;
+        aiValue = newAiNum;
+        board[aiCoor.r][aiCoor.c] = 'A';
+
         printBoard(6, 6, board);
-
-
-
 
         bool check = checkHasFinished(6, 6, board);
         if (check) {
@@ -203,17 +285,24 @@ int main (void) {
         }
     } while (hasFinished == false);
 
-        printf("Done!\n");
+        announceWinner(6, 6, board);
+        char replay;
+        printf("Would you like to play again? y/n:\n");
+        scanf(" %c", &replay);
 
-    // do {
-    //     // player move
-    //     // update board
-    //     // check if player won
-    //     // ai move
-    //     // update board
-    //     // check if ai won
-    // } while (/*hasFinished == false*/)
+        if (replay == 'y') {
+            printf("Starting New Game\n");
+            return main();
+        }
+        else if (replay == 'n')
+        {
+            printf("Closing game. Restart to Play.\n");
+            return 0;
+        } else {
+            printf("Invalid response. closing game; restart to play again\n");
+            return 0;
+        }
 
-    return 0;
+        return 0;
 }
 
